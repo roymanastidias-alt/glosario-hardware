@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glosario de Hardware - Informática Universitaria</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Estilos Globales y Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #003366, #0066cc);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .btn-admin-header {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .btn-admin-header:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+
+        /* Buscador y Controles */
+        .buscador-contenedor {
+            max-width: 500px;
+            margin: 0 auto 15px auto;
+            position: relative;
+        }
+
+        .buscador-contenedor input {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            outline: none;
+        }
+
+        /* Botón de Compartir */
+        .compartir-contenedor {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-compartir {
+            background-color: #ffffff;
+            color: #003366;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.2s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-compartir:hover {
+            background-color: #e6f0fa;
+            transform: scale(1.03);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.activo {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            color: #003366;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-grupo {
+            margin-bottom: 15px;
+        }
+
+        .form-grupo label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #003366;
+        }
+
+        .form-grupo input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .form-grupo input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .error-mensaje {
+            color: #d32f2f;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .btn-login {
+            width: 100%;
+            background-color: #003366;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-login:hover {
+            background-color: #0052a3;
+        }
+
+        .modal-opciones {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .opcion-compartir {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .opcion-compartir input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .btn-copiar {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-copiar:hover {
+            background-color: #0052a3;
+        }
+
+        .btn-cerrar-modal {
+            background-color: #f0f0f0;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn-cerrar-modal:hover {
+            background-color: #e0e0e0;
+        }
+
+        .seccion-modal {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .seccion-modal:last-child {
+            border-bottom: none;
+        }
+
+        .seccion-titulo {
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .redes-sociales {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-red-social {
+            flex: 1;
+            min-width: 45px;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .btn-whatsapp { background-color: #25D366; color: white; }
+        .btn-twitter { background-color: #1DA1F2; color: white; }
+        .btn-telegram { background-color: #0088cc; color: white; }
+        .btn-email { background-color: #EA4335; color: white; }
+        .btn-linkedin { background-color: #0A66C2; color: white; }
+
+        /* Alerta */
+        .alerta {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .alerta.exito {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .alerta.error {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        /* Contenedor del Glosario */
+        .glosario-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .categoria-seccion {
+            margin-bottom: 40px;
+        }
+
+        .categoria-titulo {
+            color: #003366;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 5px;
+            margin: 40px 0 20px 0;
+            font-size: 1.8rem;
+        }
+
+        /* Rejilla de Componentes */
+        .grid-componentes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        /* Tarjeta de Componente */
+        .tarjeta-componente {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tarjeta-componente:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Espacio para la Imagen */
+        .imagen-contenedor {
+            width: 100%;
+            height: 200px;
+            background-color: #eaeaea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .imagen-contenedor img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Contenido de la Tarjeta */
+        .contenido {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .contenido h3 {
+            color: #003366;
+            margin-bottom: 5px;
+            font-size: 1.4rem;
+        }
+
+        /* Etiqueta de Autor/Creador */
+        .autor-tag {
+            display: inline-block;
+            background-color: #e6f0fa;
+            color: #0044cc;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            align-self: flex-start;
+        }
+
+        .contenido p {
+            font-size: 0.95rem;
+            color: #555;
+            text-align: justify;
+        }
+
+        /* Mensaje de no resultados */
+        .no-resultados {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+            font-size: 1.2rem;
+            display: none;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            font-size: 0.9rem;
+            color: #777;
+            border-top: 1px solid #ddd;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="btn-admin-header" onclick="abrirLoginAdmin()">🔐 Admin</button>
+        <h1>Glosario Digital de Hardware y Fundamentos</h1>
+        <p>Estructura, conceptos y componentes fundamentales de la informática</p>
+        <div class="buscador-contenedor">
+            <input type="text" id="buscador" placeholder="Buscar término, concepto o creador...">
+        </div>
+        
+        <div class="compartir-contenedor">
+            <button class="btn-compartir" onclick="abrirModalCompartir()">🔗 Compartir Glosario</button>
+        </div>
+    </header>
+
+    <!-- Modal de Login Admin -->
+    <div id="modalLoginAdmin" class="modal-overlay">
+        <div class="modal">
+            <h2>🔐 Acceso de Administrador</h2>
+            
+            <div class="form-grupo">
+                <label for="adminPassword">Contraseña:</label>
+                <input type="password" id="adminPassword" placeholder="Ingresa tu contraseña">
+                <div id="errorLogin" class="error-mensaje"></div>
+            </div>
+
+            <button class="btn-login" onclick="loginAdmin()">Acceder</button>
+            <button class="btn-cerrar-modal" onclick="cerrarLoginAdmin()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Compartir -->
+    <div id="modalCompartir" class="modal-overlay">
+        <div class="modal">
+            <h2>📤 Compartir Glosario</h2>
+            
+            <div class="modal-opciones">
+                <!-- Sección: Copiar Enlace -->
+                <div class="seccion-modal">
+                    <div class="seccion-titulo">Copiar Enlace Directo</div>
+                    <div class="opcion-compartir">
+                        <input type="text" id="enlaceDirecto" readonly>
+                        <button class="btn-copiar" onclick="copiarAlPortapapeles('enlaceDirecto')">📋 Copiar</button>
+                    </div>
+                </div>
+
+                <!-- Sección: Compartir en Redes Sociales -->
+                <div class="seccion-modal">
+                    <div class="seccion-titulo">Compartir en Redes Sociales</div>
+                    <div class="redes-sociales">
+                        <button class="btn-red-social btn-whatsapp" onclick="compartirWhatsApp()">💬 WA</button>
+                        <button class="btn-red-social btn-twitter" onclick="compartirTwitter()">𝕏 X</button>
+                        <button class="btn-red-social btn-telegram" onclick="compartirTelegram()">✈️ TG</button>
+                        <button class="btn-red-social btn-email" onclick="compartirEmail()">📧 Email</button>
+                        <button class="btn-red-social btn-linkedin" onclick="compartirLinkedIn()">💼 LI</button>
+                    </div>
+                </div>
+
+                <!-- Sección: Código de Invitación Personalizado -->
+                <div class="seccion-modal">
+                    <div class="seccion-titulo">Código de Invitación Personalizado</div>
+                    <div class="opcion-compartir">
+                        <input type="text" id="codigoInvitacion" placeholder="Ingresa un código personalizado">
+                        <button class="btn-copiar" onclick="generarCodigoInvitacion()">✨ Generar</button>
+                    </div>
+                    <div class="opcion-compartir" style="margin-top: 10px;">
+                        <input type="text" id="enlaceConCodigo" readonly placeholder="Tu enlace con código">
+                        <button class="btn-copiar" onclick="copiarAlPortapapeles('enlaceConCodigo')">📋 Copiar</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-cerrar-modal" onclick="cerrarModalCompartir()">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="alerta" class="alerta"></div>
+
+    <main class="glosario-container">
+
+        <div class="categoria-seccion">
+            <h2 class="categoria-titulo">1. Procesamiento y Almacenamiento</h2>
+            <section class="grid-componentes">
+                
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1591405351990-4726e331f141?q=80&w=400" alt="CPU (Procesador)">
+                    </div>
+                    <div class="contenido">
+                        <h3>CPU (Procesador)</h3>
+                        <span class="autor-tag">Creador: Marcian Hoff, Federico Faggin e Intel (1971)</span>
+                        <p>El "cerebro" de la computadora. Se encarga de interpretar, ejecutar las instrucciones de los programas y coordinar el flujo de datos mediante operaciones aritméticas y lógicas esenciales.</p>
+                    </div>
+                </article>
+
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1562976540-1502c2145186?q=80&w=400" alt="Memoria RAM">
+                    </div>
+                    <div class="contenido">
+                        <h3>Memoria RAM</h3>
+                        <span class="autor-tag">Inventor: Robert Dennard (1966)</span>
+                        <p>Memoria de acceso aleatorio y volátil. Almacena temporalmente los datos de los programas que se están ejecutando en tiempo real para que el procesador acceda a ellos de forma ultra rápida.</p>
+                    </div>
+                </article>
+
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=400" alt="Placa Base">
+                    </div>
+                    <div class="contenido">
+                        <h3>Placa Base / Tarjeta Madre</h3>
+                        <span class="autor-tag">Creador: IBM (1981)</span>
+                        <p>La placa de circuito impreso principal de la computadora. Actúa como el sistema nervioso central, interconectando mecánicamente y comunicando electrónicamente la CPU, las memorias, los discos y demás periféricos.</p>
+                    </div>
+                </article>
+
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1618519764620-7403abdbfee9?q=80&w=400" alt="Memoria ROM">
+                    </div>
+                    <div class="contenido">
+                        <h3>Memoria ROM (Read Only Memory)</h3>
+                        <span class="autor-tag">Desarrollo: Intel / Toshiba (Evolución de semiconductores)</span>
+                        <p>Memoria de solo lectura y no volátil. Contiene instrucciones y datos de fábrica esenciales e imborrables que el sistema necesita para iniciar el equipo y realizar el diagnóstico primario (firmware/BIOS).</p>
+                    </div>
+                </article>
+
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1601524909162-be87252be298?q=80&w=400" alt="Almacenamiento HDD / SSD">
+                    </div>
+                    <div class="contenido">
+                        <h3>Disco Duro (HDD) / SSD</h3>
+                        <span class="autor-tag">Creadores: Reynold B. Johnson (HDD, 1956) / Toshiba (Flash, 1980s)</span>
+                        <p>Dispositivos de almacenamiento secundario permanentes. El HDD guarda los datos magnéticamente en discos giratorios, mientras que el SSD utiliza arreglos electrónicos de memoria flash.</p>
+                    </div>
+                </article>
+
+            </section>
+        </div>
+
+        <div class="categoria-seccion">
+            <h2 class="categoria-titulo">2. Fundamentos de Lógica y Software</h2>
+            <section class="grid-componentes">
+
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=400" alt="Algoritmos">
+                    </div>
+                    <div class="contenido">
+                        <h3>Algoritmos</h3>
+                        <span class="autor-tag">Precursor: Al-Juarismi (Siglo IX) / Ada Lovelace (Primer algoritmo, 1843)</span>
+                        <p>Conjunto finito, ordenado y secuencial de instrucciones o pasos lógicos bien definidos que permiten resolver un problema, procesar datos o llevar a cabo una tarea o cálculo específico.</p>
+                    </div>
+                </article>
+
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=400" alt="Lógica Algorítmica">
+                    </div>
+                    <div class="contenido">
+                        <h3>Lógica Algorítmica</h3>
+                        <span class="autor-tag">Teoría: George Boole (Álgebra Booleana, 1854) / Alan Turing</span>
+                        <p>Metodología y estructura de pensamiento abstracto utilizada para diseñar secuencias lógicas efectivas. Se basa en reglas de inferencia, operadores booleanos (AND, OR, NOT) y estructuras de control para guiar el flujo de un programa de forma matemática.</p>
+                    </div>
+                </article>
+
+            </section>
+        </div>
+
+        <div class="categoria-seccion">
+            <h2 class="categoria-titulo">3. Clasificación de Sistemas</h2>
+            <section class="grid-componentes">
+
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1548345680-f5475ea5df84?q=80&w=400" alt="Tipos de computadoras">
+                    </div>
+                    <div class="contenido">
+                        <h3>Tipos de Computadoras</h3>
+                        <span class="autor-tag">Clasificación: Evolución de la Arquitectura de Computadores</span>
+                        <p>Segmentación jerárquica de los equipos según su potencia, tamaño y arquitectura: <b>Supercomputadoras</b> (cálculo científico masivo), <b>Mainframes</b> (procesamiento de datos corporativos masivos), <b>Computadoras Personales / PC</b> (escritorio y laptops de uso general) y <b>Sistemas Embebidos</b> (microcontroladores dedicados en electrodomésticos o autos).</p>
+                    </div>
+                </article>
+
+            </section>
+        </div>
+
+        <div class="categoria-seccion">
+            <h2 class="categoria-titulo">4. Periféricos de Entrada y Salida</h2>
+            <section class="grid-componentes">
+
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400" alt="Monitor">
+                    </div>
+                    <div class="contenido">
+                        <h3>Monitor</h3>
+                        <span class="autor-tag">Inventor: Karl Ferdinand Braun (1897)</span>
+                        <p>Periférico de salida que traduce las señales de video provenientes de la tarjeta gráfica en imágenes legibles para el usuario, permitiendo la interacción visual con el sistema.</p>
+                    </div>
+                </article>
+
+                <article class="tarjeta-componente">
+                    <div class="imagen-contenedor">
+                        <img src="https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?q=80&w=400" alt="Teclado y Ratón">
+                    </div>
+                    <div class="contenido">
+                        <h3>Teclado y Ratón</h3>
+                        <span class="autor-tag">Inventores: C. Sholes (Teclado) / Douglas Engelbart (Ratón, 1964)</span>
+                        <p>Periféricos de entrada primarios. El teclado procesa comandos de texto estructurado y atajos, mientras que el ratón gestiona el movimiento espacial en un entorno gráfico tridimensional o bidimensional.</p>
+                    </div>
+                </article>
+
+            </section>
+        </div>
+
+        <div id="noResultados" class="no-resultados">No se encontraron componentes ni conceptos que coincidan con la búsqueda.</div>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Universidad Nacional Experimental de las Telecomunicaciones e Informática (UNETI) - Glosario Técnico</p>
+    </footer>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://iwmaviqsgrzcwjsynhwd.supabase.co';
+        const SUPABASE_KEY = 'bypnbczwzdjvwkfnubzs';
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const buscador = document.getElementById('buscador');
+        const secciones = document.querySelectorAll('.categoria-seccion');
+        const noResultados = document.getElementById('noResultados');
+        const modalCompartir = document.getElementById('modalCompartir');
+        const modalLoginAdmin = document.getElementById('modalLoginAdmin');
+
+        // Obtener parámetro de invitación de URL
+        function obtenerCodigoInvitacion() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('invite');
+        }
+
+        // Registrar visitante en Supabase
+        async function registrarVisitante() {
+            const codigoInvitacion = obtenerCodigoInvitacion();
+            if (!codigoInvitacion) return;
+
+            try {
+                // Registrar la visita
+                await supabase
+                    .from('visitors')
+                    .insert([{
+                        invitation_code: codigoInvitacion,
+                        user_agent: navigator.userAgent,
+                        ip_address: 'browser-visit'
+                    }]);
+
+                // Incrementar contador de visitas
+                const { data: codigo } = await supabase
+                    .from('invitation_codes')
+                    .select('visits')
+                    .eq('code', codigoInvitacion)
+                    .single();
+
+                if (codigo) {
+                    await supabase
+                        .from('invitation_codes')
+                        .update({ visits: (codigo.visits || 0) + 1 })
+                        .eq('code', codigoInvitacion);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('enlaceDirecto').value = window.location.href;
+            registrarVisitante();
+        });
+
+        // Búsqueda
+        buscador.addEventListener('input', (e) => {
+            const texto = e.target.value.toLowerCase().trim();
+            let coincidenciaGlobal = false;
+
+            secciones.forEach(seccion => {
+                const tarjetasSeccion = seccion.querySelectorAll('.tarjeta-componente');
+                let tarjetasVisiblesEnSeccion = 0;
+
+                tarjetasSeccion.forEach(tarjeta => {
+                    const titulo = tarjeta.querySelector('h3').textContent.toLowerCase();
+                    const tagAutor = tarjeta.querySelector('.autor-tag').textContent.toLowerCase();
+                    const parrafo = tarjeta.querySelector('p').textContent.toLowerCase();
+
+                    if (titulo.includes(texto) || tagAutor.includes(texto) || parrafo.includes(texto)) {
+                        tarjeta.style.display = 'flex';
+                        tarjetasVisiblesEnSeccion++;
+                        coincidenciaGlobal = true;
+                    } else {
+                        tarjeta.style.display = 'none';
+                    }
+                });
+
+                if (tarjetasVisiblesEnSeccion === 0 && texto !== '') {
+                    seccion.style.display = 'none';
+                } else {
+                    seccion.style.display = 'block';
+                }
+            });
+
+            if (!coincidenciaGlobal && texto !== '') {
+                noResultados.style.display = 'block';
+            } else {
+                noResultados.style.display = 'none';
+            }
+        });
+
+        // Modal Compartir
+        function abrirModalCompartir() {
+            modalCompartir.classList.add('activo');
+        }
+
+        function cerrarModalCompartir() {
+            modalCompartir.classList.remove('activo');
+        }
+
+        // Modal Login Admin
+        function abrirLoginAdmin() {
+            modalLoginAdmin.classList.add('activo');
+        }
+
+        function cerrarLoginAdmin() {
+            modalLoginAdmin.classList.remove('activo');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('errorLogin').textContent = '';
+        }
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modalCompartir) cerrarModalCompartir();
+            if (e.target === modalLoginAdmin) cerrarLoginAdmin();
+        });
+
+        // Login Admin
+        async function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            const errorDiv = document.getElementById('errorLogin');
+
+            if (!password) {
+                errorDiv.textContent = 'Ingresa la contraseña';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('admins')
+                    .select('*')
+                    .eq('password', password)
+                    .single();
+
+                if (error || !data) {
+                    errorDiv.textContent = 'Contraseña incorrecta';
+                    return;
+                }
+
+                // Éxito
+                localStorage.setItem('adminLoggedIn', 'true');
+                cerrarLoginAdmin();
+                mostrarAlerta('¡Bienvenido Admin!', 'exito');
+                window.location.href = 'admin.html';
+            } catch (error) {
+                errorDiv.textContent = 'Error al verificar contraseña';
+            }
+        }
+
+        // Copiar al portapapeles
+        function copiarAlPortapapeles(elementId) {
+            const elemento = document.getElementById(elementId);
+            elemento.select();
+            document.execCommand('copy');
+            mostrarAlerta('¡Copiado al portapapeles!', 'exito');
+        }
+
+        // Generar código de invitación
+        async function generarCodigoInvitacion() {
+            const inputCodigo = document.getElementById('codigoInvitacion');
+            const codigo = inputCodigo.value.trim();
+
+            if (!codigo) {
+                mostrarAlerta('Ingresa un código personalizado', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('invitation_codes')
+                    .insert([{ code: codigo }]);
+
+                if (error) {
+                    mostrarAlerta('Este código ya existe', 'error');
+                    return;
+                }
+
+                const enlaceActual = window.location.href.split('?')[0];
+                const enlaceConCodigo = `${enlaceActual}?invite=${encodeURIComponent(codigo)}`;
+                
+                document.getElementById('enlaceConCodigo').value = enlaceConCodigo;
+                inputCodigo.value = '';
+                mostrarAlerta('¡Código creado exitosamente!', 'exito');
+            } catch (error) {
+                mostrarAlerta('Error al crear código', 'error');
+            }
+        }
+
+        // Compartir en Redes Sociales
+        function compartirWhatsApp() {
+            const texto = encodeURIComponent('Consulta este Glosario Digital de Hardware y Fundamentos. ¡Es genial para aprender informática!');
+            const enlace = encodeURIComponent(window.location.href);
+            window.open(`https://wa.me/?text=${texto}%20${enlace}`, '_blank');
+        }
+
+        function compartirTwitter() {
+            const texto = encodeURIComponent('Acabo de descubrir este Glosario Digital de Hardware y Fundamentos. ¡Perfecto para estudiantes de informática! #Hardware #Educación');
+            const enlace = encodeURIComponent(window.location.href);
+            window.open(`https://twitter.com/intent/tweet?text=${texto}&url=${enlace}`, '_blank');
+        }
+
+        function compartirTelegram() {
+            const texto = encodeURIComponent('Glosario Digital de Hardware y Fundamentos');
+            const enlace = encodeURIComponent(window.location.href);
+            window.open(`https://t.me/share/url?url=${enlace}&text=${texto}`, '_blank');
+        }
+
+        function compartirEmail() {
+            const asunto = encodeURIComponent('Glosario Digital de Hardware y Fundamentos');
+            const cuerpo = encodeURIComponent(`Te comparto este excelente Glosario Digital:\n\n${window.location.href}\n\n¡Espero que te sea útil!`);
+            window.location.href = `mailto:?subject=${asunto}&body=${cuerpo}`;
+        }
+
+        function compartirLinkedIn() {
+            const enlace = encodeURIComponent(window.location.href);
+            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${enlace}`, '_blank');
+        }
+
+        // Mostrar alerta
+        function mostrarAlerta(mensaje, tipo) {
+            const alerta = document.getElementById('alerta');
+            alerta.textContent = mensaje;
+            alerta.className = `alerta ${tipo}`;
+            alerta.style.display = 'block';
+            setTimeout(() => {
+                alerta.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
